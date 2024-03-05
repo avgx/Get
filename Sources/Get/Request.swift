@@ -4,16 +4,12 @@
 
 import Foundation
 
-#if canImport(FoundationNetworking)
-import FoundationNetworking
-#endif
-
 /// An HTTP network request.
 public struct Request<Response>: @unchecked Sendable {
     /// HTTP method, e.g. "GET".
     public var method: HTTPMethod
-    /// Resource URL. Can be either absolute or relative.
-    public var url: URL?
+    /// Resource URL. Relative to baseURL.
+    public var path: String
     /// Request query items.
     public var query: [(String, String?)]?
     /// Request body.
@@ -22,23 +18,6 @@ public struct Request<Response>: @unchecked Sendable {
     public var headers: [String: String]?
     /// ID provided by the user. Not used by the API client.
     public var id: String?
-
-    /// Initialiazes the request with the given parameters.
-    public init(
-        url: URL,
-        method: HTTPMethod = .get,
-        query: [(String, String?)]? = nil,
-        body: Encodable? = nil,
-        headers: [String: String]? = nil,
-        id: String? = nil
-    ) {
-        self.method = method
-        self.url = url
-        self.query = query
-        self.headers = headers
-        self.body = body
-        self.id = id
-    }
 
     /// Initializes the request with the given parameters.
     public init(
@@ -50,47 +29,16 @@ public struct Request<Response>: @unchecked Sendable {
         id: String? = nil
     ) {
         self.method = method
-        self.url = URL(string: path.isEmpty ? "/" : path)
+        self.path = path.isEmpty ? "/" : path
         self.query = query
         self.headers = headers
         self.body = body
         self.id = id
     }
 
-    private init(optionalUrl: URL?, method: HTTPMethod) {
-        self.url = optionalUrl
-        self.method = method
-    }
-
-    /// Changes the response type keeping the rest of the request parameters.
-    public func withResponse<T>(_ type: T.Type) -> Request<T> {
-        var copy = Request<T>(optionalUrl: url, method: method)
-        copy.query = query
-        copy.body = body
-        copy.headers = headers
-        copy.id = id
-        return copy
-    }
 }
 
 extension Request where Response == Void {
-    /// Initialiazes the request with the given parameters.
-    public init(
-        url: URL,
-        method: HTTPMethod = .get,
-        query: [(String, String?)]? = nil,
-        body: Encodable? = nil,
-        headers: [String: String]? = nil,
-        id: String? = nil
-    ) {
-        self.method = method
-        self.url = url
-        self.query = query
-        self.headers = headers
-        self.body = body
-        self.id = id
-    }
-
     /// Initialiazes the request with the given parameters.
     public init(
         path: String,
@@ -101,7 +49,7 @@ extension Request where Response == Void {
         id: String? = nil
     ) {
         self.method = method
-        self.url = URL(string: path.isEmpty ? "/" : path)
+        self.path = path.isEmpty ? "/" : path
         self.query = query
         self.headers = headers
         self.body = body
