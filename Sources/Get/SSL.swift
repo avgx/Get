@@ -7,27 +7,36 @@
 
 import Foundation
 
-public enum SSL { }
+public enum SSL { 
+    case system
+    case trustEveryone
+    case pinning([Pin])
+}
 
 extension SSL {
     public struct Pin: Codable, Fingerprint, Equatable {
+        public let host: String
         public let serialNumber: String
         public let sha256: String
         public let sha1: String
         
-        public init(serialNumber: String, sha256: String, sha1: String) {
+        public init(host: String, serialNumber: String, sha256: String, sha1: String) {
+            self.host = host
             self.serialNumber = serialNumber
             self.sha256 = sha256
             self.sha1 = sha1
         }
         
-        public init(_ other: Fingerprint) {
-            self.serialNumber = other.serialNumber
-            self.sha256 = other.sha256
-            self.sha1 = other.sha1
-        }
+//        public init(_ other: Fingerprint) {
+//            self.host = other.host
+//            self.serialNumber = other.serialNumber
+//            self.sha256 = other.sha256
+//            self.sha1 = other.sha1
+//        }
     }
-    
+}
+
+extension SSL {
     /// Represent a single certificate.
     public struct Certificate: Fingerprint {
         let cert: SecCertificate
@@ -97,13 +106,13 @@ extension SSL {
             return certificates.count == 1 && (certificates.first?.isSelfSigned ?? false)
         }
         
-        public func isPinned(_ pin: Fingerprint) -> Bool {
+        public func contains(_ pin: Fingerprint) -> Bool {
             return certificates.contains(where: { $0 == pin })
         }
         
-        public var pin: Pin? {
-            guard let c = certificates.first else { return nil }
-            return Pin(c)
-        }
+//        public var pin: Pin? {
+//            guard let c = certificates.first else { return nil }
+//            return Pin(c)
+//        }
     }
 }

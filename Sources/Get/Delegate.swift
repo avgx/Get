@@ -7,20 +7,23 @@
 
 import Foundation
 import Pulse
+import Logging
 
 /// Automates URLSession request tracking.
-final class Delegate: NSObject, URLSessionDelegate, URLSessionTaskDelegate, URLSessionDataDelegate {
+final class Delegate: NSObject, URLSessionDelegate, URLSessionTaskDelegate, URLSessionDataDelegate, URLSessionWebSocketDelegate {
     private let logger: NetworkLogger?
     
     //host -> certificates
-    var ssl: [String: [SSL.Certificate]] = [:]
-    private let pins: [String: SSL.Pin]
+    var sslCache: [String: [SSL.Certificate]] = [:]
+    //private let pins: [String: SSL.Pin]
+    private let ssl: SSL
     
     /// - parameter logger: By default, creates a logger with `LoggerStore.shared`.
     /// - parameter delegate: The "actual" session delegate, strongly retained.
-    public init(loggerConfiguration: HttpClient5.LoggerConfiguration, pins: [String: SSL.Pin]) {
+    public init(loggerConfiguration: HttpClient5.LoggerConfiguration, ssl: SSL) {
         self.logger = loggerConfiguration.pulse
-        self.pins = pins
+        self.ssl = ssl
+        //self.pins = pins
     }
     
     // MARK: URLSessionTaskDelegate
@@ -76,32 +79,41 @@ final class Delegate: NSObject, URLSessionDelegate, URLSessionTaskDelegate, URLS
             return (.cancelAuthenticationChallenge, nil)
         }
         
-        let isServerTrusted = SecTrustEvaluateWithError(serverTrust, nil)
         
         
-        let t = SSL.Trust(trust: serverTrust)
-        self.ssl[host] = t.certificates
+        let trust = SSL.Trust(trust: serverTrust)
+        self.sslCache[host] = trust.certificates
+
+//TODO: check do i need it?
+//        let isServerTrusted = SecTrustEvaluateWithError(serverTrust, nil)
+//        if !isServerTrusted {
+//            print("SecTrustEvaluateWithError for \(host) (is self-signed \(String(describing: trust.isSelfSigned)))")
+//        }
         
-        if let pin = self.pins[host] {
-            let isPinned = t.isPinned(pin)
-            print("is pinned")
-            
-            if isPinned {
-                return (.useCredential, URLCredential(trust: serverTrust))
-            }
-        } else {
-            if let pin = t.pin {
-                let fingerprintToPin = [host : pin ]
-                if let fingerprint = try? JSONEncoder().encode(fingerprintToPin).string() {
-                    print("pin if need \(fingerprint)")
+        switch self.ssl {
+        case .system:
+            return (.performDefaultHandling, nil)
+        case .pinning(let pins):
+            if let pin = pins.first(where: { $0.host == host }) {
+                if trust.contains(pin) {
+                    return (.useCredential, URLCredential(trust: serverTrust))
+                } else {
+                    return (.performDefaultHandling, nil)
                 }
             }
-        }
-        if !isServerTrusted {
-            print("SecTrustEvaluateWithError for \(host) (is self-signed \(String(describing: t.isSelfSigned)))")
+        case .trustEveryone:
+            return (.useCredential, URLCredential(trust: serverTrust))
         }
         
         return (.performDefaultHandling, nil)
     }
     
+    // MARK: URLSessionWebSocketDelegate
+    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol: String?) {
+        Logger(label: "websocket").info("websocket didOpen \(webSocketTask.currentRequest?.url?.absoluteString ?? "-")")
+    }
+    
+    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith: URLSessionWebSocketTask.CloseCode, reason: Data?) {
+        Logger(label: "websocket").info("websocket didClose \(webSocketTask.currentRequest?.url?.absoluteString ?? "-")")
+    }
 }

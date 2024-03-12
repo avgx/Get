@@ -41,7 +41,7 @@ public actor HttpClient5 {
     
     deinit {
         let uuid = self.uuid
-        print("~\(String(describing: self))  \(uuid)")
+//        print("~\(String(describing: self))  \(uuid)")
         Logger(label: "lifecycle").info("~\(String(describing: self)) \(uuid)")
     }
     
@@ -50,13 +50,13 @@ public actor HttpClient5 {
     }
     
     public func certificates(for host: String) -> [SSL.Certificate]? {
-        return sessionDelegate?.ssl[host]
+        return sessionDelegate?.sslCache[host]
     }
     
     /// Initializes the client with the given parameters.
     ///
     /// - parameter baseURL: A base URL. For example, `"https://api.github.com"`.
-    public init(baseURL: URL, authorization: Authorization = .insecure, sessionConfiguration: URLSessionConfiguration = .custom, loggerConfiguration: LoggerConfiguration = .sensitive, pins: [String: SSL.Pin] = [:]) {
+    public init(baseURL: URL, authorization: Authorization = .insecure, sessionConfiguration: URLSessionConfiguration = .custom, loggerConfiguration: LoggerConfiguration = .sensitive, ssl: SSL = .system) {
         self.authorization = authorization
         
         self.baseURL = baseURL
@@ -67,8 +67,8 @@ public actor HttpClient5 {
         self.encoder.dateEncodingStrategy = .iso8601    //.secondsSince1970
         self.encoder.dataEncodingStrategy = .base64
         //TODO: .formatted(DateFormatter)
+        self.encoder.outputFormatting = [ .withoutEscapingSlashes, .prettyPrinted ]
         
-        self.encoder.outputFormatting = .withoutEscapingSlashes
 //        self.sessionConfiguration = sessionConfiguration
         let configuration = sessionConfiguration
         
@@ -79,7 +79,7 @@ public actor HttpClient5 {
                 "Accept-Language": Locale.current.identifier.prefix(2)
             ]
         }
-        sessionDelegate = Delegate(loggerConfiguration: loggerConfiguration, pins: pins)
+        sessionDelegate = Delegate(loggerConfiguration: loggerConfiguration, ssl: ssl)
         sessionDelegateQueue = .serial() //TODO: may be nil?
         self.session = URLSession(configuration: configuration, delegate: sessionDelegate, delegateQueue: sessionDelegateQueue)
         
@@ -87,7 +87,7 @@ public actor HttpClient5 {
 //            Logger(label: "network").error("create httpclient3 with expired token \(authorization)")
 //        }
         let uuid = self.uuid
-        print("\(String(describing: self)) \(uuid) \(baseURL.absoluteString) \(authorization.description)")
+//        print("\(String(describing: self)) \(uuid) \(baseURL.absoluteString) \(authorization.description)")
         Logger(label: "lifecycle").info("\(String(describing: self)) \(uuid) \(authorization.description)")
     }
     
@@ -200,6 +200,30 @@ public actor HttpClient5 {
 
 }
 
+extension HttpClient5 {
+    public func websocket(path: String) async throws -> WebSocketStream {
+        
+        var request = try await self.makeURLRequest(for: Request<String>(path: path))
+        
+        guard let url = request.url, var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            throw URLError(.badURL)
+        }
+        components.scheme = (components.scheme ?? "http")
+            .replacingOccurrences(of: "http", with: "ws")
+            .replacingOccurrences(of: "https", with: "wss")
+        
+        request.url = components.url
+        guard request.url != nil else {
+            throw URLError(.badURL)
+        }
+        
+        let socketConnection = self.session.webSocketTask(with: request)
+        let stream = WebSocketStream(task: socketConnection, encoder: self.encoder, uuid: self.uuid)
+        return stream
+    }
+    
+}
+
 
 protocol OptionalDecoding {}
 
@@ -274,3 +298,4 @@ func decode<T: Decodable>(_ data: Data, using decoder: JSONDecoder) async throws
 //} catch {
 //    completionHandler(nil, RestError.deserialization(values: "response JSON: " + error.localizedDescription))
 //}
+

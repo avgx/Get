@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol Fingerprint {
+public protocol Fingerprint {    
     var serialNumber: String { get }
     var sha256: String { get }
     var sha1: String { get }
