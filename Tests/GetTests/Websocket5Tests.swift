@@ -22,6 +22,7 @@ final class Websocket5Tests: XCTestCase {
         let http = HttpClient5(baseURL: URL(staticString: "https://echo.websocket.org"))
         let ws = try await http.websocket(path: "/")
         let start = Date()
+        let expectation = expectation(description: "Wait for async function")
         
         Task {
             do {
@@ -34,6 +35,7 @@ final class Websocket5Tests: XCTestCase {
                         print("data (\(d.count)) \(s)")
                     case .string(let s):
                         print("string \(Date().timeIntervalSince(start)) \(s)")
+                        expectation.fulfill()
                     @unknown default:
                         fatalError()
                     }
@@ -49,7 +51,8 @@ final class Websocket5Tests: XCTestCase {
         let se = [ "hello", "world"]
         try await ws.send(se)
         
-        try await Task.sleep(nanoseconds: NSEC_PER_SEC * 5) //5 sec
+        await fulfillment(of: [expectation], timeout: TimeInterval(1))
+//        try await Task.sleep(nanoseconds: NSEC_PER_SEC * 5) //5 sec
         try await ws.cancel()
         
     }
