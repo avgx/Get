@@ -201,7 +201,7 @@ public actor HttpClient5 {
 }
 
 extension HttpClient5 {
-    public func websocket(path: String) async throws -> WebSocketStream {
+    public func websocket(path: String, maximumMessageSize: Int = 1_048_576) async throws -> WebSocketStream {
         
         var request = try await self.makeURLRequest(for: Request<String>(path: path))
         
@@ -218,6 +218,7 @@ extension HttpClient5 {
         }
         
         let socketConnection = self.session.webSocketTask(with: request)
+        socketConnection.maximumMessageSize = maximumMessageSize
         let stream = WebSocketStream(task: socketConnection, encoder: self.encoder, uuid: self.uuid)
         return stream
     }
