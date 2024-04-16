@@ -1,10 +1,3 @@
-//
-//  Delegate.swift
-//
-//
-//  Created by Alexey Govorovsky on 04.03.2024.
-//
-
 import Foundation
 import Pulse
 import Logging

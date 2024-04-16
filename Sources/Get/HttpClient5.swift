@@ -140,7 +140,7 @@ public actor HttpClient5 {
         //validate
         let statusCode = response.statusCode ?? 0
         guard (200..<300).contains(statusCode) else {
-            if 302 == statusCode,
+            if 302 == statusCode || 301 == statusCode,
                let location = (response.response as? HTTPURLResponse)?.allHeaderFields["Location"] as? String,
                let redirected = URL(string: location) {
                 throw CustomError.redirectTo(redirected)
