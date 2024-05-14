@@ -29,7 +29,7 @@ public enum Authorization: CustomStringConvertible {
     }
 
     
-    var header: String? {
+    public var header: String? {
         switch self {
         case .bearer(let token):
             return "Bearer \(token)"
@@ -40,7 +40,7 @@ public enum Authorization: CustomStringConvertible {
         }
     }
     
-    var token: String? {
+    public var token: String? {
         switch self {
         case .bearer(let token):
             return "\(token)"

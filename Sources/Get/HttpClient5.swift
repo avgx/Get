@@ -21,7 +21,7 @@ extension URLSessionConfiguration {
 public actor HttpClient5 {
     let uuid = Int(Date().timeIntervalSince(appStartTs) * 1_000)
     
-    private let authorization: Authorization
+    public let authorization: Authorization
     
     /// The underlying `URLSession` instance.
     public nonisolated let session: URLSession
@@ -223,6 +223,28 @@ extension HttpClient5 {
         return stream
     }
     
+    public func websocket2(path: String, maximumMessageSize: Int = 1_048_576, stateCallback: @escaping (WebSocket2.State) -> Void = { _ in }) async throws -> WebSocket2 {
+        
+        var request = try await self.makeURLRequest(for: Request<String>(path: path))
+        
+        guard let url = request.url, var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            throw URLError(.badURL)
+        }
+        components.scheme = (components.scheme ?? "http")
+            .replacingOccurrences(of: "http", with: "ws")
+            .replacingOccurrences(of: "https", with: "wss")
+        
+        if let header = authorization.header {
+            request.setValue(header, forHTTPHeaderField: "Authorization")
+        }
+        request.url = components.url
+        guard request.url != nil else {
+            throw URLError(.badURL)
+        }
+        
+        
+        return WebSocket2(request: request, maximumMessageSize: maximumMessageSize, stateCallback: stateCallback)
+    }
 }
 
 
