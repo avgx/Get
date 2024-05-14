@@ -21,7 +21,7 @@ extension URLSessionConfiguration {
 public actor HttpClient5 {
     let uuid = Int(Date().timeIntervalSince(appStartTs) * 1_000)
     
-    public let authorization: Authorization
+    public nonisolated let authorization: Authorization
     
     /// The underlying `URLSession` instance.
     public nonisolated let session: URLSession
