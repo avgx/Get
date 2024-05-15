@@ -17,6 +17,28 @@ extension URLSessionConfiguration {
     }
 }
 
+extension JSONEncoder {
+    public class var custom: JSONEncoder {
+        let encoder: JSONEncoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601    //.secondsSince1970
+        encoder.dataEncodingStrategy = .base64
+        //TODO: .formatted(DateFormatter)
+        encoder.outputFormatting = [ .withoutEscapingSlashes, .prettyPrinted ]
+        return encoder
+    }
+}
+
+extension JSONDecoder {
+    public class var custom: JSONDecoder {
+        let decoder = JSONDecoder()
+        //TODO: .formatted(DateFormatter)
+        decoder.dateDecodingStrategy = .iso8601    //.secondsSince1970
+        decoder.dataDecodingStrategy = .base64
+        
+        return decoder
+    }
+}
+
 /// Performs network requests constructed using ``Request``.
 public actor HttpClient5 {
     let uuid = Int(Date().timeIntervalSince(appStartTs) * 1_000)
@@ -56,18 +78,18 @@ public actor HttpClient5 {
     /// Initializes the client with the given parameters.
     ///
     /// - parameter baseURL: A base URL. For example, `"https://api.github.com"`.
-    public init(baseURL: URL, authorization: Authorization = .insecure, sessionConfiguration: URLSessionConfiguration = .custom, loggerConfiguration: LoggerConfiguration = .sensitive, ssl: SSL = .system) {
+    public init(baseURL: URL, 
+                authorization: Authorization = .insecure,
+                sessionConfiguration: URLSessionConfiguration = .custom,
+                loggerConfiguration: LoggerConfiguration = .sensitive,
+                encoder: JSONEncoder = .custom,
+                decoder: JSONDecoder = .custom,
+                ssl: SSL = .system) {
         self.authorization = authorization
         
         self.baseURL = baseURL
-        self.decoder = JSONDecoder()
-        self.decoder.dateDecodingStrategy = .iso8601    //.secondsSince1970
-        self.decoder.dataDecodingStrategy = .base64
-        self.encoder = JSONEncoder()
-        self.encoder.dateEncodingStrategy = .iso8601    //.secondsSince1970
-        self.encoder.dataEncodingStrategy = .base64
-        //TODO: .formatted(DateFormatter)
-        self.encoder.outputFormatting = [ .withoutEscapingSlashes, .prettyPrinted ]
+        self.decoder = decoder
+        self.encoder = encoder
         
 //        self.sessionConfiguration = sessionConfiguration
         let configuration = sessionConfiguration

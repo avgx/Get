@@ -109,7 +109,7 @@ public class WebSocket2 {
     ///
     /// After the WebSocket disconnects, it can no longer be connected. If you want to establish a new connection
     /// you must create a new WebSocket instance.
-    func disconnect() throws {
+    public func disconnect() throws {
         guard state == .connected else {
             throw WebSocketError.notConnected
         }
