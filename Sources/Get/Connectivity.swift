@@ -21,8 +21,8 @@ extension NWInterface.InterfaceType: CaseIterable {
     ]
 }
 
-final class Connectivity {
-    static let shared = Connectivity()
+public final class Connectivity {
+    public static let shared = Connectivity()
 
     private let queue = DispatchQueue(label: "NetworkMonitor")
     private let monitor: NWPathMonitor
@@ -34,7 +34,7 @@ final class Connectivity {
         monitor = NWPathMonitor()
     }
     
-    func startMonitoring() {
+    public func startMonitoring() {
         monitor.pathUpdateHandler = { [weak self] (path: NWPath) in
             self?.isReady = true
             self?.ipv4 = path.availableInterfaces.first?.ipv4
@@ -44,7 +44,7 @@ final class Connectivity {
         monitor.start(queue: queue)
     }
 
-    func stopMonitoring() {
+    public func stopMonitoring() {
         monitor.cancel()
     }
 }
