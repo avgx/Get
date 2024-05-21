@@ -39,13 +39,35 @@ public final class Connectivity {
             self?.isReady = true
             self?.ipv4 = path.availableInterfaces.first?.ipv4
             
-            NotificationCenter.default.post(name: .connectivityStatus, object: nil)
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                let o = StatusChanged(
+                    isSatisfied: self.isSatisfied(), 
+                    isWifi: self.isWifi(),
+                    ipv4: self.ipv4
+                )
+                NotificationCenter.default.post(name: .connectivityStatus, object: o)
+            }
         }
         monitor.start(queue: queue)
     }
 
     public func stopMonitoring() {
         monitor.cancel()
+    }
+}
+
+extension Connectivity {
+    public class StatusChanged {
+        public let isSatisfied: Bool
+        public let isWifi: Bool
+        public let ipv4: String?
+        
+        public init(isSatisfied: Bool, isWifi: Bool, ipv4: String?) {
+            self.isSatisfied = isSatisfied
+            self.isWifi = isWifi
+            self.ipv4 = ipv4
+        }
     }
 }
 
