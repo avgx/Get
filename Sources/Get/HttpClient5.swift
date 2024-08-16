@@ -129,6 +129,14 @@ public actor HttpClient5 {
         let value: T = try await decode(response.data, using: decoder)
         return response.map { _ in value }
     }
+    
+    @discardableResult public func send( _ request: Request<String>) async throws -> Response<String> {
+        let response = try await data(for: request)
+        guard let value: String = String(data: response.data, encoding: .utf8) else {
+            throw URLError(.badServerResponse)
+        }
+        return response.map { _ in value }
+    }
 
     /// Sends the given request.
     ///

@@ -114,12 +114,43 @@ final class HttpClient5Tests: XCTestCase {
             let certs = await http.certificates(for: "self-signed.badssl.com")
             XCTAssertEqual(certs?.count, 1)
             XCTAssertEqual(certs?.first?.isSelfSigned, true)
-            XCTAssertEqual(certs?.first?.commonName, "*.badssl.com")            
+            XCTAssertEqual(certs?.first?.commonName, "*.badssl.com")
         } catch {
             XCTFail()
         }
     }
     
+    func testMultipart() async throws {
+        let url = URL(string: "http://try.axxonsoft.com:8000/asip-api/v1/logic_service/batchgetactivealerts")!
+        
+        var req = URLRequest(url: url)
+        req.addValue(Authorization.basic(.init(user: "root", password: "root")).header!, forHTTPHeaderField: "Authorization")
+        req.httpMethod = "POST"
+        req.httpBody = "{ }".data(using: .utf8)   ////!!!!!!! Это важно при отправке!! иначе 400
+        let (stream, response) = try await URLSession.shared.bytes(for: req)
+        var bytes: [UInt8] = []
+        // 4
+        for try await byte in stream {
+            // 5
+            bytes.append(byte)
+        }
+        XCTAssert(bytes.count > 0)
+        
+    }
+    
+    func testMultipart5() async throws {
+        struct Empty: Codable { }
+        
+        let url = URL(string: "http://try.axxonsoft.com:8000/asip-api")!
+        
+        let http = HttpClient5(baseURL: url, authorization: .basic(.init(user: "root", password: "root")))
+        let req = Request(path: "/v1/logic_service/batchgetactivealerts", method: .post, body: Empty())
+        let resp = try await http.send(req)
+        
+        
+        XCTAssert(resp.data.count > 0)
+        
+    }
 }
 
 //""

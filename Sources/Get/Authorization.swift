@@ -15,8 +15,8 @@ public enum Authorization: CustomStringConvertible {
     case insecure
     
     public struct Basic {
-        let user: String
-        let password: String
+        public let user: String
+        public let password: String
         
         public init(user: String, password: String) {
             self.user = user
