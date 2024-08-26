@@ -9,12 +9,12 @@ import Foundation
 
 public typealias JwtToken = String
 
-public enum Authorization: CustomStringConvertible {
+public enum Authorization: Sendable, CustomStringConvertible {
     case bearer(JwtToken)
     case basic(Basic)
     case insecure
     
-    public struct Basic {
+    public struct Basic: Sendable {
         public let user: String
         public let password: String
         
@@ -23,8 +23,12 @@ public enum Authorization: CustomStringConvertible {
             self.password = password
         }
         
+        public var userpassword: String {
+            return "\(user):\(password)"
+        }
+        
         public var string: String {
-            return "\(user):\(password)".data(using: .utf8)!.base64EncodedString()
+            return userpassword.data(using: .utf8)!.base64EncodedString()
         }
     }
 
@@ -49,12 +53,21 @@ public enum Authorization: CustomStringConvertible {
         }
     }
     
+    public var userpassword: String? {
+        switch self {
+        case .basic(let a):
+            return a.userpassword
+        default:
+            return nil
+        }
+    }
+    
     public var description: String {
         switch self {
         case .bearer(let token):
             return "bearer \(token)"
         case .basic(let a):
-            return "basic \(a.string)"
+            return "basic \(a.userpassword)"
         case .insecure:
             return "insecure"
         }
