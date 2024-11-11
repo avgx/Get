@@ -72,4 +72,15 @@ public enum Authorization: Sendable, CustomStringConvertible {
             return "insecure"
         }
     }
+    
+    public var descriptionSensitive: String {
+        switch self {
+        case .bearer(let token):
+            return "bearer ..\(token.suffix(10))"
+        case .basic(let a):
+            return "basic \(a.user):***"
+        case .insecure:
+            return "insecure"
+        }
+    }
 }

@@ -109,8 +109,8 @@ public actor HttpClient5 {
 //            Logger(label: "network").error("create httpclient3 with expired token \(authorization)")
 //        }
         let uuid = self.uuid
-//        print("\(String(describing: self)) \(uuid) \(baseURL.absoluteString) \(authorization.description)")
-        Logger(label: "lifecycle").info("\(String(describing: self)) \(uuid) \(authorization.description)")
+        let description = loggerConfiguration == .full ? authorization.description : authorization.descriptionSensitive
+        Logger(label: "lifecycle").info("\(String(describing: self)) \(uuid) \(description)")
     }
     
 
