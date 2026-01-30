@@ -3,7 +3,7 @@ import Pulse
 import Logging
 
 /// Automates URLSession request tracking.
-final class Delegate: NSObject, URLSessionDelegate, URLSessionTaskDelegate, URLSessionDataDelegate, URLSessionWebSocketDelegate {
+public final class Delegate: NSObject, URLSessionDelegate, URLSessionTaskDelegate, URLSessionDataDelegate, URLSessionWebSocketDelegate {
     private let logger: NetworkLogger?
     
     //host -> certificates
@@ -102,11 +102,11 @@ final class Delegate: NSObject, URLSessionDelegate, URLSessionTaskDelegate, URLS
     }
     
     // MARK: URLSessionWebSocketDelegate
-    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol: String?) {
+    public func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol: String?) {
         Logger(label: "websocket").info("websocket didOpen \(webSocketTask.currentRequest?.url?.absoluteString ?? "-")")
     }
     
-    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith: URLSessionWebSocketTask.CloseCode, reason: Data?) {
+    public func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith: URLSessionWebSocketTask.CloseCode, reason: Data?) {
         Logger(label: "websocket").info("websocket didClose \(webSocketTask.currentRequest?.url?.absoluteString ?? "-")")
     }
 }
