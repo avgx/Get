@@ -1,39 +1,33 @@
 # Get
 
-Http client built using async/await. 
+Swift package with modular HTTP and streaming helpers.
 
-Configured to log using [Pulse](https://github.com/kean/Pulse)
-Based on [Get](https://github.com/kean/Get)
-With certificate pinning via fingerprint option (based on [samples](https://github.com/search?q=pinning+URLSession+language%3ASwift&type=code&l=Swift))
+- **HTTPKit** — interceptors, response validation, `URLSession` async `dataTask`, error types; depends on **SSLPinning** for `URLSessionCertificateTrustFailure` (TLS helpers live there). `Package.swift` uses local `../SSLPinning` until a new SSLPinning release is tagged.
+- **HTTP** — `HTTPClient` (owned `URLSession` + ``Delegate``), async `send` / `data` with [RequestResponse](https://github.com/avgx/RequestResponse); `URLSession` extensions for shared sessions; TLS via [SSLPinning](https://github.com/avgx/SSLPinning); no Pulse in the base graph.
+- **GetAuth** — `AuthState`, `Authorization`, `AuthInterceptor`. For access token expiry use [JWTDecode.swift](https://github.com/auth0/JWTDecode.swift) in the app (`decode(jwt:)` → `expiresAt`); it does not validate signatures.
+- **Multipart** — `MJPEGStream`, `MJPEGFrameStream`, `MultipartFrameStream` (multipart / MJPEG over HTTP); depends on **HTTP**. Product `Multipart` in `Package.swift`.
+- **SSE**, **WS** — streaming / WebSocket.
 
-Get provides a clear and convenient API for modeling network requests using `Request<Response>` type. 
-And its `HttpClient5` makes it easy to execute these requests and decode the responses.
+Pulse and app-specific session logging are optional and live outside this package (e.g. in the app or [DebugThings](https://github.com/avgx/DebugThings)).
+
+## Example (HTTP)
 
 ```swift
-// Create a client
-let client = HttpClient5(baseURL: URL(string: "https://api.github.com"))
+import HTTP
+import RequestResponse
 
-// Request json with get
-let user: User = try await client.send(Request(path: "/user")).value
-
-// Request json with post
-var request = Request(path: "/user/emails", method: .post, body: ["alex@me.com"])
-try await client.send(request)
-
-// Don't decode for string
-let string: String = try await client.send(Request(path: "/user")).value
-
-// Don't decode for Data
-let data: Data = try await client.send(Request(path: "/favicon.ico")).value
+let client = HTTPClient(configuration: .ephemeral)
+let builder = RequestBuilder(
+    baseURL: URL(string: "https://api.github.com")!,
+    encoder: JSONEncoder(),
+    sessionDefaultHeaders: nil
+)
+let user: User = try await client.send(
+    Request(path: "/user", method: .get),
+    with: builder
+).value
 ```
-
-## Documentation
-
-Learn how to use Get by going through the [documentation](https://kean-docs.github.io/get/documentation/get/) created using DocC.
-
-To learn more about `URLSession`, see [URL Loading System](https://developer.apple.com/documentation/foundation/url_loading_system).
-
 
 ## License
 
-Get is available under the MIT license. See the LICENSE file for more info.
+MIT. See LICENSE.
