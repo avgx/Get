@@ -2,21 +2,21 @@ import Foundation
 import SSLPinning
 
 extension WebSocket {
-    /// Настройки `WebSocket`
+    /// `WebSocket` client settings.
     public struct Configuration: Sendable {
-        /// Политика проверки цепочки сертификата (как у HTTP ``Delegate``).
+        /// TLS certificate chain evaluation (same idea as HTTP session delegate).
         public var serverTrustPolicy: ServerTrustPolicy
-        /// Максимальный размер одного сообщения на уровне `URLSessionWebSocketTask`.
+        /// Maximum size of a single `URLSessionWebSocketTask` message.
         public var maximumMessageSize: Int
-        /// Логировать размер каждого отправленного и принятого сообщения через ``WebSocket/logger`` (SwiftLog / DebugThings).
+        /// When true, log sent/received byte sizes via ``WebSocket``’s logger (SwiftLog / DebugThings).
         public var logSentReceivedBytes: Bool
-        /// Таймаут ожидания `didOpen` рукопожатия WebSocket (секунды).
+        /// Seconds to wait for the WebSocket handshake (`didOpen`).
         public var connectionHandshakeTimeout: TimeInterval
-        /// Периодические ping (`nil` — не отправлять), интервал в секундах.
+        /// Periodic ping interval in seconds; `nil` disables ping.
         public var pingInterval: TimeInterval?
-        /// Если задано, разрыв при отсутствии входящих сообщений (и успешных ping) дольше интервала (секунды).
+        /// When set, disconnect if no inbound messages (and no successful pong) for longer than this interval (seconds).
         public var readIdleTimeout: TimeInterval?
-        /// Параметры `URLSessionConfiguration` для сокета.
+        /// Mirrors key `URLSessionConfiguration` timeouts / connectivity for the socket session.
         public var timeoutIntervalForRequest: TimeInterval
         public var timeoutIntervalForResource: TimeInterval
         public var waitsForConnectivity: Bool
@@ -35,7 +35,7 @@ extension WebSocket {
             return config
         }
         
-        /// Создаёт конфигурацию клиента.
+        /// Creates a client configuration.
         public init(
             maximumMessageSize: Int = 16_777_216,
             logSentReceivedBytes: Bool = false,

@@ -1,13 +1,12 @@
 import Foundation
 
-/// Хаб состояния соединения:
-/// хранит текущее значение и рассылает его всем подписчикам;
-/// новый подписчик сразу получает актуальное состояние.
+/// Connection state hub: holds the current value and broadcasts updates to subscribers;
+/// a new subscriber immediately receives the latest state.
 actor StateHub {
     private var state: WebSocket.State = .idle
     private var listeners: [UUID: AsyncStream<WebSocket.State>.Continuation] = [:]
 
-    /// Текущее состояние транспорта.
+    /// Current transport state.
     public func current() -> WebSocket.State {
         state
     }
@@ -19,7 +18,7 @@ actor StateHub {
         }
     }
 
-    /// Поток обновлений: первый элемент — текущее состояние на момент подписки, далее — каждое изменение.
+    /// Update stream: first element is the state at subscription time, then each subsequent change.
     public func updates() -> AsyncStream<WebSocket.State> {
         let id = UUID()
         let (stream, continuation) = AsyncStream<WebSocket.State>.makeStream()

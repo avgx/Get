@@ -8,31 +8,31 @@
 import Foundation
 
 extension WebSocket {
-    /// Состояние транспорта WebSocket для отображения в UI и логики переподключения.
+    /// WebSocket transport state for UI and reconnect logic.
     public enum State: Equatable, Sendable {
-        /// Клиент создан, активного соединения ещё не было.
+        /// Client created; no active connection yet.
         case idle
-        /// Устанавливается соединение (включая повтор после обрыва).
+        /// Connecting or reconnecting after a drop.
         case connecting
-        /// Сокет поднят, идёт приём сообщений.
+        /// Socket is up; receiving messages.
         case connected
-        /// Ожидание перед следующей попыткой переподключения (см. `ReconnectPolicy`).
+        /// Waiting before the next reconnect attempt (see `ReconnectPolicy`).
         case reconnecting(attempt: Int)
-        /// Соединение закрыто; причина уточняется в `DisconnectReason`.
+        /// Disconnected; see `DisconnectReason`.
         case disconnected(reason: DisconnectReason)
     }
 }
 
 extension WebSocket.State {
-    /// Причина перехода в состояние «отключено».
+    /// Why the socket moved to a disconnected state.
     public enum DisconnectReason: Equatable, Sendable {
-        /// Пользователь вызвал `disconnect()`.
+        /// User called `disconnect()`.
         case userInitiated
-        /// Сокет закрыт из‑за политики жизненного цикла (например, уход в фон).
+        /// Closed due to app lifecycle policy (e.g. background).
         case backgroundSuspended
-        /// Сеть стала недоступной (инициатор — владелец, обычно по `AppLifecycleManager`).
+        /// Network unavailable (owner-driven, often via `AppLifecycleManager`).
         case networkUnavailable
-        /// HTTP 401 при установке соединения / апгрейде.
+        /// HTTP 401 on connect / upgrade.
         case httpUnauthorized
         /// HTTP 403.
         case httpForbidden
@@ -40,13 +40,13 @@ extension WebSocket.State {
         case httpNotFound
         /// HTTP 5xx.
         case httpServerError(statusCode: Int)
-        /// Другой код 4xx (кроме 401/403/404), если удалось извлечь из ответа.
+        /// Other 4xx (except 401/403/404) when derivable from the response.
         case httpClientError(statusCode: Int)
-        /// Ошибка уровня `URLSession` / `URLError`.
+        /// `URLSession` / `URLError` level failure.
         case urlSessionError(URLError.Code)
-        /// Сервер закрыл соединение по WebSocket (код закрытия и опциональная причина UTF‑8).
+        /// Server closed the WebSocket (close code and optional UTF-8 reason).
         case serverClosed(code: Int, reason: String?)
-        /// Прочая или не классифицированная ошибка.
+        /// Other or unclassified error.
         case underlying(Error)
         
         public static func == (lhs: DisconnectReason, rhs: DisconnectReason) -> Bool {
@@ -78,7 +78,7 @@ extension WebSocket.State {
 }
 
 extension WebSocket.State.DisconnectReason {
-    /// Преобразует системную ошибку в более конкретную причину отключения (HTTP-коды апгрейда, `URLError`, и т.д.).
+    /// Maps a system error to a more specific disconnect reason (HTTP upgrade status, `URLError`, etc.).
     public static func classifyTransportError(_ error: Error) -> WebSocket.State.DisconnectReason {
         if let urlError = error as? URLError {
             return .urlSessionError(urlError.code)
@@ -129,8 +129,8 @@ extension WebSocket.State.DisconnectReason {
         }
     }
 
-    /// Уровень `WebSocket.Session`: переподключать после этого отключения (транспорт/сервер).
-    /// Lifecycle и `NWPathMonitor` — причины вроде `.backgroundSuspended` / `.networkUnavailable` (`false`).
+    /// Session-level hint: whether to reconnect after this disconnect (transport/server issues).
+    /// Lifecycle / `NWPathMonitor` reasons such as `.backgroundSuspended` / `.networkUnavailable` return `false`.
     public var canReconnect: Bool {
         switch self {
         case .userInitiated, .backgroundSuspended, .networkUnavailable:

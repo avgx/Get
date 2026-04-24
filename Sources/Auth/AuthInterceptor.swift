@@ -1,7 +1,7 @@
 import Foundation
 import HTTP
 
-/// Attaches credentials per request. Use ``init(authorization:)`` for Basic or static Bearer; ``init(auth:)`` for refreshable Bearer JWT.
+/// Bearer JWT per request from ``AuthState``; retries once after ``HTTPError`` with status 401 by refreshing the token. For static Basic/Bearer, use ``Authorization`` on the session or a custom interceptor.
 public final class AuthInterceptor: RequestInterceptor, @unchecked Sendable {
     private let auth: AuthState
 

@@ -1,8 +1,8 @@
 import Foundation
 import SSLPinning
 
-/// Делегат `URLSession` для WebSocket: рукопожатие, challenge, закрытие сервером и завершение задачи.
-/// Не держит ссылку на `WebSocketClient`; колбэки снимаются через `clearCallbacks()` при teardown.
+/// `URLSession` delegate for WebSocket: handshake, authentication challenges, server close, and task completion.
+/// Does not retain `WebSocket`; clear callbacks with `clearCallbacks()` on teardown.
 final class Delegate: NSObject, URLSessionWebSocketDelegate, URLSessionDelegate, @unchecked Sendable {
 
     private let tls: ServerTrustEvaluator

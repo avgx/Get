@@ -1,15 +1,15 @@
 import Foundation
 
 
-/// Ошибки публичного API `WebSocketClient`, не приходящие напрямую от `URLSession`.
+/// Errors from the public `WebSocket` API that are not thrown directly as raw `URLSession` errors.
 public enum WebSocketError: Swift.Error, Sendable, Equatable {
-    /// Нет активного сокета (ещё не подключились или уже отключились).
+    /// No active socket (not connected yet or already disconnected).
     case notConnected
-    /// Некорректная конфигурация (например, отсутствует URL в запросе).
+    /// Invalid client configuration (e.g. missing URL on the request).
     case invalidConfiguration(String)
-    /// Рукопожатие WebSocket не завершилось за `connectionHandshakeTimeout`.
+    /// Handshake did not complete within `connectionHandshakeTimeout`.
     case handshakeTimeout
-    /// Рукопожатие завершилось ошибкой от системы.
+    /// Handshake failed with a system-provided description.
     case handshakeFailed(underlyingDescription: String)
 }
 

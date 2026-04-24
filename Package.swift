@@ -40,7 +40,8 @@ let package = Package(
                 .product(name: "RequestResponse", package: "RequestResponse"),
                 .product(name: "SSLPinning", package: "SSLPinning"),
                 .product(name: "DebugThings", package: "DebugThings"),
-            ]
+            ],
+            exclude: ["README.md"]
         ),
         .target(
             name: "HTTP",
@@ -54,15 +55,18 @@ let package = Package(
         ),
         .target(
             name: "Multipart",
-            dependencies: ["HTTP"]
+            dependencies: ["HTTP"],
+            exclude: ["README.md"]
         ),
         .target(
             name: "SSE",
-            dependencies: ["HTTP"]
+            dependencies: ["HTTP"],
+            exclude: ["README.md"]
         ),
         .target(
             name: "Auth",
-            dependencies: ["HTTP"]
+            dependencies: ["HTTP"],
+            exclude: ["README.md"]
         ),
         .target(
             name: "WS",
@@ -71,7 +75,8 @@ let package = Package(
                 .product(name: "DebugThings", package: "DebugThings"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "SSLPinning", package: "SSLPinning")
-            ]
+            ],
+            exclude: ["README.md"]
         ),
         .testTarget(
             name: "HTTPTests",

@@ -6,7 +6,7 @@ public enum HTTPError: Error, LocalizedError {
     /// Non-success status; `body` is the raw response payload (often JSON error from the server).
     case unacceptableStatusCode(statusCode: Int, body: Data, url: URL?)
 
-    //TODO: нужна локализация!
+    // TODO: localization for user-facing messages.
     public var errorDescription: String? {
         switch self {
         case .unacceptableStatusCode(let statusCode, let body, let url):

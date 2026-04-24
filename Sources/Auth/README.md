@@ -1,170 +1,41 @@
-нормальная декомпозиция: **Auth state → interceptor → transport → delegate → metrics/logging**.
+# Auth
 
+Bearer access tokens with optional refresh, integrated as a `RequestInterceptor` on `HTTPClient`.
 
-# идея архитектуры
+## Types
 
-Раздели ответственность:
+### `AuthState` (actor)
 
-* **AuthState (actor)**
-  Хранит текущий access token + refresh token
-  Управляет refresh (с дедупликацией)
+- Holds access and refresh tokens and optional access-token expiry (`accessExpiresAt`).
+- **`validAccessToken(refreshIfNeeded:)`** — returns the current access token; may call **`refresh()`** if missing, if proactive refresh is due (`RefreshPolicy` margin vs `exp`), or when configured accordingly.
+- **`refresh()`** — de-duplicates concurrent refresh via an internal `Task`; calls the closure supplied at init (`onRefresh`). Perform refresh with a **plain** `HTTPClient` (no `AuthInterceptor`) to avoid recursion.
+- **`RefreshPolicy`** — optional proactive refresh margin before JWT expiry; requires a known expiry (e.g. [JWTDecode.swift](https://github.com/auth0/JWTDecode.swift) `decode(jwt:)` → `expiresAt`). JWTDecode does not validate signatures.
 
-* **AuthInterceptor**
-  Встраивает Bearer token в `URLRequest`
-  Реагирует на 401 → инициирует refresh → повторяет запрос
+### `AuthInterceptor`
 
-* **HTTPClient (обёртка над URLSession)**
-  Выполняет запросы
-  Прогоняет через interceptor chain
+Conforms to **`RequestInterceptor`** (from **HTTP**).
 
----
+- **`adapt`** — sets `Authorization: Bearer <token>` using `AuthState.validAccessToken()`.
+- **`retry`** — on **`HTTPError`** with status **401**, calls `auth.refresh()` once and allows retry (subject to `HTTPClient`’s `maxRetryAttempts`).
 
-# 2. AuthState как actor (без гонок)
+Static Basic or static Bearer without refresh belongs in **`Authorization`** (HTTP module) or session default headers, not in `AuthInterceptor`.
 
-Это центральная точка. Без actor тут почти гарантированы race conditions.
+## Wiring
 
 ```swift
-actor AuthState {
-    private var accessToken: String?
-    private var refreshToken: String?
-    
-    private var refreshTask: Task<String, Error>?
+import Auth
+import HTTP
 
-    func setTokens(access: String, refresh: String) {
-        self.accessToken = access
-        self.refreshToken = refresh
-    }
-
-    func getAccessToken() -> String? {
-        accessToken
-    }
-
-    func validAccessToken(refreshIfNeeded: Bool = true) async throws -> String {
-        if let token = accessToken {
-            return token
-        }
-        guard refreshIfNeeded else {
-            throw AuthError.missingToken
-        }
-        return try await refresh()
-    }
-
-    func refresh() async throws -> String {
-        if let task = refreshTask {
-            return try await task.value
-        }
-
-        let task = Task<String, Error> {
-            defer { refreshTask = nil }
-
-            let newToken = try await performRefresh()
-            self.accessToken = newToken
-            return newToken
-        }
-
-        refreshTask = task
-        return try await task.value
-    }
-
-    private func performRefresh() async throws -> String {
-        // отдельный URLSession без interceptor'ов!
-        // иначе recursion
-        throw URLError(.badServerResponse)
-    }
+let auth = AuthState(policy: .init(margin: 60)) {
+    // call token endpoint; return new access JWT string
+    try await refreshAccessToken()
 }
+let client = HTTPClient(
+    configuration: .ephemeral,
+    interceptor: AuthInterceptor(auth: auth)
+)
 ```
 
-Ключевой момент:
-**refreshTask** устраняет “thundering herd” — все запросы ждут один refresh.
+## See also
 
----
-
----
-
-# 4. AuthInterceptor
-
-```swift
-final class AuthInterceptor: HTTPInterceptor {
-    private let auth: AuthState
-
-    init(auth: AuthState) {
-        self.auth = auth
-    }
-
-    func adapt(_ request: URLRequest) async throws -> URLRequest {
-        var request = request
-
-        let token = try await auth.validAccessToken()
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
-        return request
-    }
-
-    func retry(_ request: URLRequest, dueTo error: Error) async -> Bool {
-        guard let urlError = error as? URLError else { return false }
-
-        // лучше проверять HTTP 401 через response, но для примера:
-        if urlError.code == .userAuthenticationRequired {
-            do {
-                _ = try await auth.refresh()
-                return true
-            } catch {
-                return false
-            }
-        }
-
-        return false
-    }
-}
-```
-
-
-# 7. Важные edge cases
-
-### 1. Рекурсия refresh
-
-refresh должен идти через **чистый client без interceptor**
-
----
-
-### 2. Retry loop
-
-Добавь ограничение:
-
-```swift
-var retryCount = 0
-```
-
-или через `URLRequest` extension (associated storage)
-
----
-
-### 3. 401 vs network error
-
-Правильнее:
-
-* проверять `HTTPURLResponse.statusCode == 401`
-* а не `URLError`
-
----
-
-### 4. Cancellation propagation
-
-Если исходный Task отменён — refresh тоже должен отменяться
-(по умолчанию Task это делает, но проверяй)
-
----
-
-
-#  Что дальше имеет смысл улучшить
-
-Если делать «production-grade»:
-
-* exponential backoff
-* jitter
-* circuit breaker
-* request coalescing (одинаковые GET)
-* structured logging (trace-id)
-* metrics (TTFB, DNS, TLS)
-
----
+- [Root README.md](../../README.md)

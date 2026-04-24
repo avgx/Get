@@ -11,7 +11,7 @@ import Testing
     }
 }
 
-//TODO: тут нужно не просто тупо кинуть error, в нём ещё должен быть список сертификатов которые можно припинить (по желанию пользователя)
+// TODO: surface an error that includes optional user-pinning certificate metadata, not only a generic failure.
 /// Performs one request, maps the URL error to ``SSLPinningError``, asserts on ``URLError.Code``, then rethrows for `#expect(throws:)`.
 private func throwMappedSelfSignedBadSSL() async throws {
     let url = URL(string: "https://self-signed.badssl.com/")!

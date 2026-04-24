@@ -38,9 +38,9 @@ func lanWebSocketConnectAndFirstMessage() async throws {
     await socket.disconnect()
 }
 
-/// Десять минут входящего трафика: в консоль — размер полезной нагрузки каждого кадра и смены ``WebSocket/State``.
-/// Включается только при `GET_TEST_WS_LONG_LISTEN=1` (и тех же LAN/`GET_TEST_WS_PATH`, что у короткого WS-теста). Заготовка под смену токена и наблюдение за переподключением.
-@Test(.tags(.integration), .disabled("TODO: for ws reconnect after refresh tokens. disble for now."))
+/// Ten minutes of inbound traffic: logs each frame payload size and ``WebSocket/State`` transitions.
+/// Enabled only when `GET_TEST_WS_LONG_LISTEN=1` (same LAN / `GET_TEST_WS_PATH` as the short WS test). Scaffold for token rotation and reconnect observation.
+@Test(.tags(.integration), .disabled("TODO: WS reconnect after token refresh; disabled for now."))
 func lanWebSocketLongListenPayloadBytesAndState() async throws {
     guard TestEnvironment.value(for: "GET_TEST_WS_LONG_LISTEN") == "1" else {
         return

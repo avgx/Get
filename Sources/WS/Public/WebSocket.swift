@@ -4,7 +4,7 @@ import DebugThings
 import Logging
 import HTTP
 
-/// Гарантирует один вызов `resume` на continuation: колбэки `URLSession` иногда приходят повторно при закрытии сокета.
+/// Ensures `resume` is invoked once on the continuation: `URLSession` callbacks may fire more than once when the socket closes.
 private final class ContinuationResumeOnce: @unchecked Sendable {
     private let lock = NSLock()
     private var didResume = false
@@ -87,7 +87,7 @@ extension WebSocket {
         await stateHub.updates()
     }
 
-    /// Единственный поток входящих кадров. Одновременно допустим только один активный поток; после его завершения можно вызвать снова.
+    /// Single stream of incoming frames. Only one active `messages()` stream at a time; call again after it finishes.
     public func messages() async -> AsyncStream<URLSessionWebSocketTask.Message> {
         precondition(messagesContinuation == nil, "WebSocketClient: only one active messages() stream at a time")
         var captured: AsyncStream<URLSessionWebSocketTask.Message>.Continuation!
@@ -334,12 +334,12 @@ extension WebSocket {
         case .notConnected:
             return .underlying(URLError(.notConnectedToInternet))
         case .invalidConfiguration(let message):
-            //TODO: надо исправить, это совершенно непонятная ошибка.
+            // TODO: replace with a typed / clearer disconnect mapping than a generic NSError.
             return .underlying(NSError(domain: "WebSocketClient", code: 1, userInfo: [NSLocalizedDescriptionKey: message]))
         case .handshakeTimeout:
             return .urlSessionError(.timedOut)
         case .handshakeFailed(let description):
-            //TODO: надо исправить, это совершенно непонятная ошибка
+            // TODO: replace with a typed / clearer disconnect mapping than a generic NSError.
             return .underlying(NSError(domain: "WebSocketClient", code: 2, userInfo: [NSLocalizedDescriptionKey: description]))
         }
     }

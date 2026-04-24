@@ -1,16 +1,29 @@
 # Get
 
-Swift package with modular HTTP and streaming helpers.
+Swift package: modular HTTP client, multipart/MJPEG streaming, Server-Sent Events, optional auth helpers, and WebSockets.
 
-- **HTTPKit** — interceptors, response validation, `URLSession` async `dataTask`, error types; depends on **SSLPinning** for `URLSessionCertificateTrustFailure` (TLS helpers live there). `Package.swift` uses local `../SSLPinning` until a new SSLPinning release is tagged.
-- **HTTP** — `HTTPClient` (owned `URLSession` + ``Delegate``), async `send` / `data` with [RequestResponse](https://github.com/avgx/RequestResponse); `URLSession` extensions for shared sessions; TLS via [SSLPinning](https://github.com/avgx/SSLPinning); no Pulse in the base graph.
-- **GetAuth** — `AuthState`, `Authorization`, `AuthInterceptor`. For access token expiry use [JWTDecode.swift](https://github.com/auth0/JWTDecode.swift) in the app (`decode(jwt:)` → `expiresAt`); it does not validate signatures.
-- **Multipart** — `MJPEGStream`, `MJPEGFrameStream`, `MultipartFrameStream` (multipart / MJPEG over HTTP); depends on **HTTP**. Product `Multipart` in `Package.swift`.
-- **SSE**, **WS** — streaming / WebSocket.
+## Products (`Package.swift`)
 
-Pulse and app-specific session logging are optional and live outside this package (e.g. in the app or [DebugThings](https://github.com/avgx/DebugThings)).
+| Product     | Purpose |
+|------------|---------|
+| **Get**    | Umbrella: re-exports `HTTP`, `Multipart`, `SSE`, `Auth`, `WS`, `RequestResponse`, and `SSLPinning`, plus `HttpClient5` (migration façade over `HTTPClient`). |
+| **HTTP**   | `HTTPClient` (owned `URLSession` + delegate), interceptors, response validation, logging hooks, line streaming, TLS via [SSLPinning](https://github.com/avgx/SSLPinning). |
+| **Multipart** | `HTTPClient.frames(...)` — async stream of `MultipartFrame` for `multipart/x-mixed-replace` / related responses (URLSession per-part delivery). |
+| **SSE**    | `HTTPClient.eventStream(...)` — parsed `SSEEvent` stream. |
+| **Auth**   | `AuthState` (actor), `AuthInterceptor` (Bearer + refresh on HTTP 401 via `HTTPError`), `RefreshPolicy` for proactive refresh when JWT expiry is known. |
+| **WS**     | `WebSocket` actor: `URLSessionWebSocketTask`, state stream, reconnect-oriented APIs. |
 
-## Example (HTTP)
+Dependencies include [RequestResponse](https://github.com/avgx/RequestResponse), [swift-log](https://github.com/apple/swift-log), [JWTDecode.swift](https://github.com/auth0/JWTDecode.swift) (JWT expiry only; not signature validation), [DebugThings](https://github.com/avgx/DebugThings), and SSLPinning.
+
+## Umbrella import
+
+```swift
+import Get
+```
+
+Use individual products (`import HTTP`, etc.) when you want a smaller dependency surface.
+
+## HTTP example
 
 ```swift
 import HTTP
@@ -27,6 +40,15 @@ let user: User = try await client.send(
     with: builder
 ).value
 ```
+
+## Module READMEs
+
+- [Sources/Get/README.md](Sources/Get/README.md)
+- [Sources/HTTP/README.md](Sources/HTTP/README.md)
+- [Sources/Multipart/README.md](Sources/Multipart/README.md)
+- [Sources/SSE/README.md](Sources/SSE/README.md)
+- [Sources/Auth/README.md](Sources/Auth/README.md)
+- [Sources/WS/README.md](Sources/WS/README.md)
 
 ## License
 

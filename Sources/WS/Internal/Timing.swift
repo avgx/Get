@@ -1,6 +1,6 @@
 import Foundation
 
-/// Чистые преобразования интервалов и расчёт backoff 
+/// Pure time conversions and reconnect backoff helpers.
 enum Timing {
     static func handshakeTimeoutNanoseconds(_ seconds: TimeInterval) -> UInt64 {
         let raw = seconds * 1_000_000_000.0
