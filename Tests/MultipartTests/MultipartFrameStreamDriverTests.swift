@@ -1,3 +1,4 @@
+import EncodeDecode
 import Foundation
 @testable import Multipart
 import Testing

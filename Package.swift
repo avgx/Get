@@ -113,7 +113,10 @@ let package = Package(
         ),
         .testTarget(
             name: "MultipartTests",
-            dependencies: ["Multipart"],
+            dependencies: [
+                "Multipart",
+                .product(name: "EncodeDecode", package: "EncodeDecode"),
+            ],
             path: "Tests/MultipartTests"
         ),
         .testTarget(

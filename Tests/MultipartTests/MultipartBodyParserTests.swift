@@ -1,5 +1,5 @@
+import EncodeDecode
 import Foundation
-@testable import Multipart
 import Testing
 
 @Test func multipartRootParsesMixedReplaceBoundary() throws {
