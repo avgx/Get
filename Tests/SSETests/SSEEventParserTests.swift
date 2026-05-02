@@ -1,5 +1,5 @@
-import SSE
 import EncodeDecode
+import SSE
 import Testing
 
 @Test func sseAccumulatorEmitsOnBlankLine() {

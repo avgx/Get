@@ -1,6 +1,6 @@
+import Foundation
 import Auth
 import DebugThings
-import Foundation
 import HTTP
 import RequestResponse
 import Testing

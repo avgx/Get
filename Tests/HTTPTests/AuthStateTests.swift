@@ -1,5 +1,5 @@
-import Auth
 import Foundation
+import Auth
 import Testing
 
 @Test func authStateRefreshCoalesces() async throws {

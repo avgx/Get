@@ -1,5 +1,5 @@
-import HTTP
 import Foundation
+import HTTP
 import RequestResponse
 import Testing
 

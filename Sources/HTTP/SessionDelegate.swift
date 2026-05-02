@@ -1,6 +1,6 @@
 import Foundation
-import SSLPinning
 import DebugThings
+import SSLPinning
 
 private extension RedirectDisposition {
     /// Handler suitable for ``SessionDelegate``’s `onWillPerformHTTPRedirection`.

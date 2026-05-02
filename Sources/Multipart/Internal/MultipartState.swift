@@ -1,5 +1,5 @@
-import EncodeDecode
 import Foundation
+import EncodeDecode
 import HTTP
 
 /// When URLSession delivers each multipart **part** as its own `HTTPURLResponse` (typical for `multipart/x-mixed-replace` on Apple stacks), accumulate `didReceive data` until `Content-Length` is satisfied, or scan for a JPEG (`FF D8` … `FF D9`) when length is unknown.

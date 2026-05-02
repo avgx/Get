@@ -3,9 +3,9 @@
 // If another test target already called `bootstrapStandardOutput`, `bootstrapPulse` may be a no-op for that process.
 // For reliable Pulse paths, run in isolation, e.g. `swift test --filter HTTPLoggingTests`.
 
+import Foundation
 import DebugThings
 import DebugThingsPulseProxy
-import Foundation
 import HTTP
 import Logging
 import Testing

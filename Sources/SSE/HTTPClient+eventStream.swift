@@ -1,6 +1,6 @@
 import Foundation
-import HTTP
 import EncodeDecode
+import HTTP
 
 /// Structured Server-Sent Events over HTTP (same line transport as ``HTTPClient/streamLines``; parses SSE field blocks).
 extension HTTPClient {

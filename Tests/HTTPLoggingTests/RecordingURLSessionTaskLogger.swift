@@ -1,5 +1,5 @@
-import DebugThings
 import Foundation
+import DebugThings
 
 final class RecordingURLSessionTaskLogger: URLSessionTaskLogger, @unchecked Sendable {
     private let lock = NSLock()

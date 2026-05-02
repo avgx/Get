@@ -1,8 +1,8 @@
 import Foundation
 import Network
 import DebugThings
-import Logging
 import HTTP
+import Logging
 
 /// Ensures `resume` is invoked once on the continuation: `URLSession` callbacks may fire more than once when the socket closes.
 private final class ContinuationResumeOnce: @unchecked Sendable {

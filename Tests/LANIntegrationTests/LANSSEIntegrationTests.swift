@@ -1,9 +1,9 @@
-import DebugThings
 import Foundation
-import HTTP
-import SSE
+import DebugThings
 import EncodeDecode
+import HTTP
 import SSLPinning
+import SSE
 import Testing
 
 // MARK: - SSE (HTTPClient line stream + SSE parsing)
