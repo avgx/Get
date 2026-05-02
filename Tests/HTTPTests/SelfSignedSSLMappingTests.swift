@@ -18,7 +18,7 @@ private func throwMappedSelfSignedBadSSL() async throws {
 
     let configuration = URLSessionConfiguration.ephemeral
     let client = HTTPClient(configuration: configuration)
-    let builder = RequestBuilder(
+    let builder = RequestBuilder.json(
         baseURL: url,
         encoder: JSONEncoder()
     )

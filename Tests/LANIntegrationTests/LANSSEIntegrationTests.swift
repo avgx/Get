@@ -2,6 +2,7 @@ import DebugThings
 import Foundation
 import HTTP
 import SSE
+import EncodeDecode
 import SSLPinning
 import Testing
 
@@ -45,7 +46,7 @@ func lanSseEventStreamFirstEvent() async throws {
         "No SSE event within timeout (server must send a full field block ending with a blank line)."
     )
     guard let event else { return }
-    #expect(event != SSEEvent(data: ""))
+    #expect(event != ServerSentEvent(data: ""))
 }
 
 /// Requires `GET_TEST_SSE_PATH`. Reads up to 10 ``SSEEvent`` values; expects at least two distinct frames (CRLF-safe parsing).
@@ -61,7 +62,7 @@ func lanSseEventStreamFirst10() async throws {
     DebugThingsTestSupport.installStandardOutputLogging()
     let taskLog = SimpleURLSessionTaskLogger(label: "lan.sse.event.10")
     let client = HTTPClient(configuration: .ephemeral, serverTrustPolicy: .system, logger: taskLog)
-    var events: [SSEEvent] = []
+    var events: [ServerSentEvent] = []
     let stream = await client.eventStream(request: request)
     for try await event in stream {
         events.append(event)

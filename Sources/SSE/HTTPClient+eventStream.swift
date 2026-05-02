@@ -1,5 +1,6 @@
 import Foundation
 import HTTP
+import EncodeDecode
 
 /// Structured Server-Sent Events over HTTP (same line transport as ``HTTPClient/streamLines``; parses SSE field blocks).
 extension HTTPClient {
@@ -9,7 +10,7 @@ extension HTTPClient {
         request: URLRequest,
         timeout: TimeInterval = 30.0,
         sessionConfiguration: URLSessionConfiguration? = nil
-    ) async -> AsyncThrowingStream<SSEEvent, Error> {
+    ) async -> AsyncThrowingStream<ServerSentEvent, Error> {
         var req = request
         if timeout > 0 {
             req.timeoutInterval = timeout
@@ -17,7 +18,7 @@ extension HTTPClient {
         let lineStream = await streamLines(request: req, sessionConfiguration: sessionConfiguration)
         return AsyncThrowingStream { continuation in
             let parseTask = Task {
-                var parser = SSEEventAccumulator()
+                var parser = SSEAccumulator()
                 do {
                     for try await line in lineStream {
                         if let ev = parser.push(line) {

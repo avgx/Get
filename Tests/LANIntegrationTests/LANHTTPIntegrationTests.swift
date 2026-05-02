@@ -29,7 +29,7 @@ func lanHttpProductVersion() async throws {
         configuration: configuration,
         logger: taskLog
     )
-    let builder = RequestBuilder(
+    let builder = RequestBuilder.json(
         baseURL: base,
         encoder: JSONEncoder(),
         sessionDefaultHeaders: headers
@@ -55,7 +55,7 @@ func lanHttpAuthIntercentorProductVersion() async throws {
         interceptor: fixedAuth,
         logger: taskLog
     )
-    let builder = RequestBuilder(
+    let builder = RequestBuilder.json(
         baseURL: base,
         encoder: JSONEncoder()
     )

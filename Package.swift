@@ -25,7 +25,8 @@ let package = Package(
         .package(url: "https://github.com/auth0/JWTDecode.swift", from: "4.0.0"),
         .package(url: "https://github.com/avgx/SSLPinning", from: "1.0.2"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.10.1"),
-        .package(url: "https://github.com/avgx/RequestResponse.git", from: "1.0.0"),
+        .package(url: "https://github.com/avgx/RequestResponse.git", from: "2.0.0"),
+        .package(url: "https://github.com/avgx/EncodeDecode.git", from: "1.0.1"),
         .package(url: "https://github.com/avgx/DebugThings.git", branch: "main")
     ],
     targets: [
@@ -38,6 +39,7 @@ let package = Package(
                 "Auth",
                 "WS",
                 .product(name: "RequestResponse", package: "RequestResponse"),
+                .product(name: "EncodeDecode", package: "EncodeDecode"),
                 .product(name: "SSLPinning", package: "SSLPinning"),
                 .product(name: "DebugThings", package: "DebugThings"),
             ],
@@ -48,6 +50,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "RequestResponse", package: "RequestResponse"),
+                .product(name: "EncodeDecode", package: "EncodeDecode"),
                 .product(name: "SSLPinning", package: "SSLPinning"),
                 .product(name: "DebugThings", package: "DebugThings")
             ],
@@ -55,12 +58,18 @@ let package = Package(
         ),
         .target(
             name: "Multipart",
-            dependencies: ["HTTP"],
+            dependencies: [
+                "HTTP",
+                .product(name: "EncodeDecode", package: "EncodeDecode"),
+            ],
             exclude: ["README.md"]
         ),
         .target(
             name: "SSE",
-            dependencies: ["HTTP"],
+            dependencies: [
+                "HTTP",
+                .product(name: "EncodeDecode", package: "EncodeDecode"),
+            ],
             exclude: ["README.md"]
         ),
         .target(
@@ -86,6 +95,7 @@ let package = Package(
                 .product(name: "DebugThings", package: "DebugThings"),
                 .product(name: "JWTDecode", package: "JWTDecode.swift"),
                 .product(name: "RequestResponse", package: "RequestResponse"),
+                .product(name: "EncodeDecode", package: "EncodeDecode"),
                 .product(name: "SSLPinning", package: "SSLPinning"),
             ],
             path: "Tests/HTTPTests"
@@ -120,6 +130,7 @@ let package = Package(
                 "WS",
                 "Auth",
                 .product(name: "RequestResponse", package: "RequestResponse"),
+                .product(name: "EncodeDecode", package: "EncodeDecode"),
                 .product(name: "DebugThings", package: "DebugThings"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "SSLPinning", package: "SSLPinning"),

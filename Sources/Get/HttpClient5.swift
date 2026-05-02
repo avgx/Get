@@ -53,7 +53,7 @@ public actor HttpClient5 {
         self.session = httpClient.session
 
         let sessionHeaders = Self.stringHeaders(from: configuration.httpAdditionalHeaders)
-        self.builder = RequestBuilder(baseURL: baseURL, encoder: encoder, sessionDefaultHeaders: sessionHeaders)
+        self.builder = RequestBuilder.json(baseURL: baseURL, encoder: encoder, sessionDefaultHeaders: sessionHeaders)
     }
 
     public func finishTasksAndInvalidate() {

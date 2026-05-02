@@ -11,7 +11,7 @@ public enum HTTPError: Error, LocalizedError {
         switch self {
         case .unacceptableStatusCode(let statusCode, let body, let url):
             let preview = String(data: body.prefix(2_048), encoding: .utf8) ?? "<\(body.count) bytes>"
-            return "Response status code was unacceptable: \(statusCode). \n\(preview) \n\(url?.absoluteString)"
+            return "Response status code was unacceptable: \(statusCode). \n\(preview) \n\(String(describing: url?.absoluteString))"
         }
     }
 

@@ -1,6 +1,7 @@
 import Foundation
 import DebugThings
 import RequestResponse
+import EncodeDecode
 import SSLPinning
 
 /// HTTP transport with an owned ``URLSession`` and ``SessionDelegate``
