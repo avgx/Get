@@ -23,7 +23,7 @@ public actor HTTPClient {
         interceptor: RequestInterceptor = NoopRequestInterceptor(),
         validator: ResponseValidator = DefaultResponseValidator(),
         observer: RequestObserver = NoopRequestObserver(),
-        logger: URLSessionTaskLogger = SimpleURLSessionTaskLogger(), //TODO: default to NoopURLSessionTaskLogger(),
+        logger: URLSessionTaskLogger = NoopURLSessionTaskLogger(),
         maxRetryAttempts: Int = 3
     ) {
         self.serverTrustPolicy = serverTrustPolicy

@@ -18,7 +18,6 @@ let package = Package(
         .library(name: "HTTP", targets: ["HTTP"]),
         .library(name: "Multipart", targets: ["Multipart"]),
         .library(name: "SSE", targets: ["SSE"]),
-        .library(name: "Auth", targets: ["Auth"]),
         .library(name: "WS", targets: ["WS"]),
     ],
     dependencies: [
@@ -36,7 +35,6 @@ let package = Package(
                 "HTTP",
                 "Multipart",
                 "SSE",
-                "Auth",
                 "WS",
                 .product(name: "RequestResponse", package: "RequestResponse"),
                 .product(name: "EncodeDecode", package: "EncodeDecode"),
@@ -71,12 +69,7 @@ let package = Package(
                 .product(name: "EncodeDecode", package: "EncodeDecode"),
             ],
             exclude: ["README.md"]
-        ),
-        .target(
-            name: "Auth",
-            dependencies: ["HTTP"],
-            exclude: ["README.md"]
-        ),
+        ),        
         .target(
             name: "WS",
             dependencies: [
@@ -91,7 +84,6 @@ let package = Package(
             name: "HTTPTests",
             dependencies: [
                 "HTTP",
-                "Auth",
                 .product(name: "DebugThings", package: "DebugThings"),
                 .product(name: "JWTDecode", package: "JWTDecode.swift"),
                 .product(name: "RequestResponse", package: "RequestResponse"),
@@ -131,7 +123,6 @@ let package = Package(
                 "Multipart",
                 "SSE",
                 "WS",
-                "Auth",
                 .product(name: "RequestResponse", package: "RequestResponse"),
                 .product(name: "EncodeDecode", package: "EncodeDecode"),
                 .product(name: "DebugThings", package: "DebugThings"),

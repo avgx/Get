@@ -10,7 +10,6 @@ Swift package: modular HTTP client, multipart/MJPEG streaming, Server-Sent Event
 | **HTTP**   | `HTTPClient` (owned `URLSession` + delegate), interceptors, response validation, logging hooks, line streaming, TLS via [SSLPinning](https://github.com/avgx/SSLPinning). |
 | **Multipart** | `HTTPClient.frames(...)` — async stream of `MultipartFrame` for `multipart/x-mixed-replace` / related responses (URLSession per-part delivery). |
 | **SSE**    | `HTTPClient.eventStream(...)` — parsed `SSEEvent` stream. |
-| **Auth**   | `AuthState` (actor), `AuthInterceptor` (Bearer + refresh on HTTP 401 via `HTTPError`), `RefreshPolicy` for proactive refresh when JWT expiry is known. |
 | **WS**     | `WebSocket` actor: `URLSessionWebSocketTask`, state stream, reconnect-oriented APIs. |
 
 Dependencies include [RequestResponse](https://github.com/avgx/RequestResponse), [swift-log](https://github.com/apple/swift-log), [JWTDecode.swift](https://github.com/auth0/JWTDecode.swift) (JWT expiry only; not signature validation), [DebugThings](https://github.com/avgx/DebugThings), and SSLPinning.
