@@ -38,6 +38,12 @@ let user: User = try await client.send(
     Request(path: "/user", method: .get),
     with: builder
 ).value
+
+// Paged stream (SSE or multipart/related):
+let pages: [CameraListPage] = try await client.pages(
+    Request<PagedResponse<CameraListPage>>(path: "v1/domain/cameras", method: .get),
+    with: builder
+)
 ```
 
 ## Module READMEs

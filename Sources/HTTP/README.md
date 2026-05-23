@@ -5,6 +5,7 @@ Core async HTTP transport built on `URLSession` with a dedicated `SessionDelegat
 ## Highlights
 
 - **`HTTPClient`** (actor): `data(for: URLRequest)`, `data(for:with:)` / `send(...)` for [RequestResponse](https://github.com/avgx/RequestResponse) `Request` values; JSON decode in `send` with decode-failure callbacks on the observer.
+- **`HTTPClient.pages(_:with:decoder:)`** — decodes `Request<PagedResponse<T>>` from buffered SSE or `multipart/related` (Content-Type auto-detect via [EncodeDecode](https://github.com/avgx/EncodeDecode)). `send` is **unavailable** for `PagedResponse` requests.
 - **Interceptors**: `RequestInterceptor` (`adapt`, `retry`); default `NoopRequestInterceptor`.
 - **Validation**: `ResponseValidator` (default treats unacceptable HTTP status as `HTTPError`).
 - **Observation**: `RequestObserver` for metrics-friendly hooks (will send, success/failure, decode failure).

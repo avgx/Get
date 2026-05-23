@@ -65,6 +65,15 @@ public actor HttpClient5 {
         try await client.send(request, with: builder, decoder: decoder)
     }
 
+    @available(*, unavailable, message: "Use pages(_:) for paged stream endpoints.")
+    public func send<T: Decodable & Sendable>(_ request: Request<PagedResponse<T>>) async throws -> Response<PagedResponse<T>> {
+        fatalError()
+    }
+
+    public func pages<T: Decodable & Sendable>(_ request: Request<PagedResponse<T>>) async throws -> [T] {
+        try await client.pages(request, with: builder, decoder: decoder)
+    }
+
     @discardableResult
     public func send(_ request: Request<String>) async throws -> Response<String> {
         let response = try await client.data(for: request, with: builder)
