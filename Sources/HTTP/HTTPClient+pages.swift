@@ -3,7 +3,7 @@ import EncodeDecode
 import RequestResponse
 
 extension HTTPClient {
-    func pages<T: Decodable & Sendable>(
+    public func pages<T: Decodable & Sendable>(
         _ request: Request<PagedResponse<T>>,
         with builder: RequestBuilder,
         decoder: JSONDecoder = JSONDecoder()
