@@ -24,8 +24,8 @@ let package = Package(
         .package(url: "https://github.com/auth0/JWTDecode.swift", from: "4.0.0"),
         .package(url: "https://github.com/avgx/SSLPinning", from: "1.0.2"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.10.1"),
-        .package(url: "https://github.com/avgx/RequestResponse.git", from: "2.0.0"),
-        .package(url: "https://github.com/avgx/EncodeDecode.git", from: "1.0.4"),
+        .package(url: "https://github.com/avgx/RequestResponse.git", from: "2.0.1"),
+        .package(url: "https://github.com/avgx/EncodeDecode.git", from: "1.0.5"),
         .package(url: "https://github.com/avgx/DebugThings.git", branch: "main")
     ],
     targets: [
