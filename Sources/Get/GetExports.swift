@@ -1,4 +1,3 @@
-@_exported import Auth
 @_exported import EncodeDecode
 @_exported import HTTP
 @_exported import Multipart

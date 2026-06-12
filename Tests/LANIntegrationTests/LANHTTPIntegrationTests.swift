@@ -1,5 +1,4 @@
 import Foundation
-import Auth
 import DebugThings
 import HTTP
 import RequestResponse

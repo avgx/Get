@@ -68,7 +68,7 @@ func lanMultipartArcPlaySecureVideoCollectThree() async throws {
     
     var i = 0
     for try await item in await client.frames(request: request) {
-        print("frame cameraid:\(item.headers["x-cameraid"]) time:\(item.headers["x-time"]) timestamp:\(item.headers["x-timestamp"]) \(item.headers["x-height"])p \(item.description)")
+        print("frame cameraid:\(String(describing: item.headers["x-cameraid"])) time:\(String(describing: item.headers["x-time"])) timestamp:\(String(describing: item.headers["x-timestamp"])) \(String(describing: item.headers["x-height"]))p \(item.description)")
         i += 1
         if i >= 10 {
             break

@@ -26,7 +26,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-log.git", from: "1.10.1"),
         .package(url: "https://github.com/avgx/RequestResponse.git", from: "2.0.1"),
         .package(url: "https://github.com/avgx/EncodeDecode.git", from: "1.0.5"),
-        .package(url: "https://github.com/avgx/DebugThings.git", branch: "main")
+        .package(url: "https://github.com/avgx/DebugThings.git", from: "2.0.0")
     ],
     targets: [
         .target(
@@ -98,7 +98,6 @@ let package = Package(
                 "HTTP",
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "DebugThings", package: "DebugThings"),
-                .product(name: "DebugThingsPulseProxy", package: "DebugThings"),
                 .product(name: "SSLPinning", package: "SSLPinning"),
             ],
             path: "Tests/HTTPLoggingTests"
