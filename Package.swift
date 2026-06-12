@@ -40,8 +40,7 @@ let package = Package(
                 .product(name: "EncodeDecode", package: "EncodeDecode"),
                 .product(name: "SSLPinning", package: "SSLPinning"),
                 .product(name: "DebugThings", package: "DebugThings"),
-            ],
-            exclude: ["README.md"]
+            ]
         ),
         .target(
             name: "HTTP",
@@ -51,25 +50,22 @@ let package = Package(
                 .product(name: "EncodeDecode", package: "EncodeDecode"),
                 .product(name: "SSLPinning", package: "SSLPinning"),
                 .product(name: "DebugThings", package: "DebugThings")
-            ],
-            exclude: ["README.md"]
+            ]
         ),
         .target(
             name: "Multipart",
             dependencies: [
                 "HTTP",
                 .product(name: "EncodeDecode", package: "EncodeDecode"),
-            ],
-            exclude: ["README.md"]
+            ]
         ),
         .target(
             name: "SSE",
             dependencies: [
                 "HTTP",
                 .product(name: "EncodeDecode", package: "EncodeDecode"),
-            ],
-            exclude: ["README.md"]
-        ),        
+            ]
+        ),
         .target(
             name: "WS",
             dependencies: [
@@ -77,8 +73,7 @@ let package = Package(
                 .product(name: "DebugThings", package: "DebugThings"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "SSLPinning", package: "SSLPinning")
-            ],
-            exclude: ["README.md"]
+            ]
         ),
         .testTarget(
             name: "HTTPTests",
