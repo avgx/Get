@@ -1,39 +1,60 @@
 # Get
 
-Http client built using async/await. 
+Swift package: modular HTTP client, multipart/MJPEG streaming, Server-Sent Events, optional auth helpers, and WebSockets.
 
-Configured to log using [Pulse](https://github.com/kean/Pulse)
-Based on [Get](https://github.com/kean/Get)
-With certificate pinning via fingerprint option (based on [samples](https://github.com/search?q=pinning+URLSession+language%3ASwift&type=code&l=Swift))
+## Products (`Package.swift`)
 
-Get provides a clear and convenient API for modeling network requests using `Request<Response>` type. 
-And its `HttpClient5` makes it easy to execute these requests and decode the responses.
+| Product     | Purpose |
+|------------|---------|
+| **Get**    | Umbrella: re-exports `HTTP`, `Multipart`, `SSE`, `Auth`, `WS`, `RequestResponse`, and `SSLPinning`, plus `HttpClient5` (migration façade over `HTTPClient`). |
+| **HTTP**   | `HTTPClient` (owned `URLSession` + delegate), interceptors, response validation, logging hooks, line streaming, TLS via [SSLPinning](https://github.com/avgx/SSLPinning). |
+| **Multipart** | `HTTPClient.frames(...)` — async stream of `MultipartFrame` for `multipart/x-mixed-replace` / related responses (URLSession per-part delivery). |
+| **SSE**    | `HTTPClient.eventStream(...)` — parsed `SSEEvent` stream. |
+| **WS**     | `WebSocket` actor: `URLSessionWebSocketTask`, state stream, reconnect-oriented APIs. |
+
+Dependencies include [RequestResponse](https://github.com/avgx/RequestResponse), [swift-log](https://github.com/apple/swift-log), [JWTDecode.swift](https://github.com/auth0/JWTDecode.swift) (JWT expiry only; not signature validation), [DebugThings](https://github.com/avgx/DebugThings), and SSLPinning.
+
+## Umbrella import
 
 ```swift
-// Create a client
-let client = HttpClient5(baseURL: URL(string: "https://api.github.com"))
-
-// Request json with get
-let user: User = try await client.send(Request(path: "/user")).value
-
-// Request json with post
-var request = Request(path: "/user/emails", method: .post, body: ["alex@me.com"])
-try await client.send(request)
-
-// Don't decode for string
-let string: String = try await client.send(Request(path: "/user")).value
-
-// Don't decode for Data
-let data: Data = try await client.send(Request(path: "/favicon.ico")).value
+import Get
 ```
 
-## Documentation
+Use individual products (`import HTTP`, etc.) when you want a smaller dependency surface.
 
-Learn how to use Get by going through the [documentation](https://kean-docs.github.io/get/documentation/get/) created using DocC.
+## HTTP example
 
-To learn more about `URLSession`, see [URL Loading System](https://developer.apple.com/documentation/foundation/url_loading_system).
+```swift
+import HTTP
+import RequestResponse
 
+let client = HTTPClient(configuration: .ephemeral)
+let builder = RequestBuilder(
+    baseURL: URL(string: "https://api.github.com")!,
+    encoder: JSONEncoder(),
+    sessionDefaultHeaders: nil
+)
+let user: User = try await client.send(
+    Request(path: "/user", method: .get),
+    with: builder
+).value
+
+// Paged stream (SSE or multipart/related):
+let pages: [CameraListPage] = try await client.pages(
+    Request<PagedResponse<CameraListPage>>(path: "v1/domain/cameras", method: .get),
+    with: builder
+)
+```
+
+## Module READMEs
+
+- [Sources/Get/README.md](Sources/Get/README.md)
+- [Sources/HTTP/README.md](Sources/HTTP/README.md)
+- [Sources/Multipart/README.md](Sources/Multipart/README.md)
+- [Sources/SSE/README.md](Sources/SSE/README.md)
+- [Sources/Auth/README.md](Sources/Auth/README.md)
+- [Sources/WS/README.md](Sources/WS/README.md)
 
 ## License
 
-Get is available under the MIT license. See the LICENSE file for more info.
+MIT. See LICENSE.
