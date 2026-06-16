@@ -9,7 +9,7 @@ Modular Swift package for HTTP, multipart/MJPEG streaming, Server-Sent Events, a
 
 | Product | Import | Purpose |
 |---------|--------|---------|
-| **Get** | `import Get` | Umbrella: re-exports **HTTP**, **Multipart**, **SSE**, **WS**, [RequestResponse](https://github.com/avgx/RequestResponse), [EncodeDecode](https://github.com/avgx/EncodeDecode), and [SSLPinning](https://github.com/avgx/SSLPinning). Includes `HttpClient5` migration façade. |
+| **Get** | `import Get` | Umbrella: re-exports **HTTP**, **Multipart**, **SSE**, **WS**, [RequestResponse](https://github.com/avgx/RequestResponse), [EncodeDecode](https://github.com/avgx/EncodeDecode), and [SSLPinning](https://github.com/avgx/SSLPinning). |
 | **HTTP** | `import HTTP` | `HTTPClient`, interceptors, validation, line streaming, static auth helpers. |
 | **Multipart** | `import Multipart` | `HTTPClient.frames(...)` for `multipart/x-mixed-replace` and related streams. |
 | **SSE** | `import SSE` | `HTTPClient.eventStream(...)` for parsed `ServerSentEvent` values. |
@@ -35,31 +35,6 @@ targets: [
 ## Get
 
 `import Get` pulls in every module plus shared types from RequestResponse, EncodeDecode, and SSLPinning.
-
-### `HttpClient5` (migration façade)
-
-`HttpClient5` wraps `HTTPClient` + `RequestBuilder` for code migrating from the older monolithic API. New code should use `HTTPClient` directly.
-
-```swift
-import Get
-
-struct User: Decodable, Sendable { let login: String }
-
-let client = HttpClient5(
-    baseURL: URL(string: "https://api.example.com")!,
-    authorization: .bearer("token"),
-    ssl: .system
-)
-
-let user: User = try await client.send(
-    Request(path: "/user", method: .get)
-).value
-
-// Paged endpoints (SSE or multipart/related) — use pages(), not send():
-let cameras: [CameraListPage] = try await client.pages(
-    Request<PagedResponse<CameraListPage>>(path: "v1/cameras", method: .get)
-)
-```
 
 ---
 
