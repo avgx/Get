@@ -34,7 +34,6 @@ extension JSONDecoder {
 public enum SSL: Sendable {
     case system
     case trustEveryone
-    case pinning([Pin])
 }
 
 extension SSL {
@@ -42,7 +41,6 @@ extension SSL {
         switch self {
         case .system: .system
         case .trustEveryone: .trustEveryone
-        case .pinning(let pins): .pinning(pins)
         }
     }
 }
