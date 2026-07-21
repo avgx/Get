@@ -16,7 +16,6 @@ extension HTTPClient {
         let log = logger
         let intercept = interceptor
         let observe = observer
-        let baseConfig = session.configuration
 
         return AsyncThrowingStream { continuation in
             let setup = Task {
@@ -36,13 +35,7 @@ extension HTTPClient {
                         handler: handler,
                         logger: log
                     )
-                    let cfg: URLSessionConfiguration = {
-                        if let sessionConfiguration { return sessionConfiguration }
-                        let c = URLSessionConfiguration.ephemeral
-                        c.timeoutIntervalForRequest = baseConfig.timeoutIntervalForRequest
-                        c.timeoutIntervalForResource = baseConfig.timeoutIntervalForResource
-                        return c
-                    }()
+                    let cfg = sessionConfiguration ?? .longLivedStreaming
                     let streamSession = URLSession(configuration: cfg, delegate: delegate, delegateQueue: nil)
                     let dataTask = streamSession.dataTask(with: urlRequest)
                     continuation.onTermination = { @Sendable _ in

@@ -9,6 +9,16 @@ extension URLSessionConfiguration {
         x.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
         return x
     }
+
+    /// Long-lived multipart / MJPEG streams. Prefer ``URLSessionConfiguration/longLivedStreaming``
+    /// from the HTTP module when available; kept here for legacy Get consumers.
+    public static var longLivedStreaming: URLSessionConfiguration {
+        let x: URLSessionConfiguration = .ephemeral
+        x.timeoutIntervalForRequest = 120
+        x.timeoutIntervalForResource = 604_800
+        x.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        return x
+    }
 }
 
 extension JSONEncoder {
