@@ -1,37 +1,41 @@
 import Foundation
 import SSLPinning
 
-/// `URLSession` delegate for WebSocket: handshake, authentication challenges, server close, and task completion.
-/// Does not retain `WebSocket`; clear callbacks with `clearCallbacks()` on teardown.
+/// What `URLSession` reports about an opened WebSocket task.
+enum TransportEvent: Sendable {
+    /// `didCloseWith`: the server sent a close frame.
+    case closed(code: Int, reason: Data?)
+    /// `didCompleteWithError` after the handshake: the task is over.
+    case completed(Error?)
+}
+
+/// `URLSession` delegate for one connection attempt: TLS challenge, handshake outcome, then transport events.
+///
+/// Never touches `WebSocket` state. The handshake outcome goes to ``handshake``; everything after it goes to
+/// ``events``. Both are one-shot channels owned by the attempt, so a callback that arrives after the attempt
+/// is over lands nowhere.
 final class Delegate: NSObject, URLSessionWebSocketDelegate, URLSessionDelegate, @unchecked Sendable {
+    let handshake = ResumeOnce<Void>()
+    let events: AsyncStream<TransportEvent>
 
     private let tls: ServerTrustEvaluator
+    private let eventsContinuation: AsyncStream<TransportEvent>.Continuation
+    private let lock = NSLock()
+    private var opened = false
 
-    private let handshakeLock = NSLock()
-    private var handshakeContinuation: CheckedContinuation<Void, Error>?
-    private var handshakeDidSucceed = false
-
-    var onServerClosed: ((Int, Data?) -> Void)?
-    var onTaskFinished: ((NSError?) -> Void)?
-
-    init(serverTrustPolicy: ServerTrustPolicy = .system) {
+    /// One delegate per `URLSession`, one session per attempt.
+    init(serverTrustPolicy: ServerTrustPolicy) {
         self.tls = ServerTrustEvaluator(policy: serverTrustPolicy)
+        (events, eventsContinuation) = AsyncStream.makeStream(of: TransportEvent.self)
         super.init()
     }
 
-    func setHandshakeContinuation(_ continuation: CheckedContinuation<Void, Error>?) {
-        handshakeLock.lock()
-        defer { handshakeLock.unlock() }
-        handshakeContinuation = continuation
+    /// Ends ``events``; later callbacks are dropped. Call when the attempt is over.
+    func finish() {
+        eventsContinuation.finish()
     }
 
-    func clearCallbacks() {
-        handshakeLock.lock()
-        defer { handshakeLock.unlock() }
-        onServerClosed = nil
-        onTaskFinished = nil
-    }
-
+    /// System callback: server trust goes through `ServerTrustPolicy`, other challenges get default handling.
     func urlSession(
         _ session: URLSession,
         didReceive challenge: URLAuthenticationChallenge,
@@ -47,51 +51,40 @@ final class Delegate: NSObject, URLSessionWebSocketDelegate, URLSessionDelegate,
         completionHandler(result.disposition, result.credential)
     }
 
+    /// System callback: handshake succeeded.
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol `protocol`: String?) {
-        handshakeLock.lock()
-        handshakeDidSucceed = true
-        handshakeLock.unlock()
-        _ = `protocol`
-        completeHandshake(.success(()))
+        lock.lock()
+        opened = true
+        lock.unlock()
+        handshake.resume(.success(()))
     }
 
+    /// System callback: close frame from the server.
     func urlSession(
         _ session: URLSession,
         webSocketTask: URLSessionWebSocketTask,
         didCloseWith closeCode: URLSessionWebSocketTask.CloseCode,
         reason: Data?
     ) {
-        onServerClosed?(closeCode.rawValue, reason)
+        eventsContinuation.yield(.closed(code: closeCode.rawValue, reason: reason))
     }
 
+    /// System callback: the task is over. Before `didOpen` this is the handshake failure, after it a link event.
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        handshakeLock.lock()
-        let opened = handshakeDidSucceed
-        handshakeLock.unlock()
+        lock.lock()
+        let wasOpened = opened
+        lock.unlock()
 
-        if !opened {
-            if let error {
-                completeHandshake(.failure(error))
-            } else {
-                completeHandshake(.failure(URLError(.networkConnectionLost)))
-            }
+        guard wasOpened else {
+            handshake.resume(.failure(HandshakeFailure(error: error, response: task.response)))
             return
         }
-
-        onTaskFinished?(error.map { $0 as NSError })
+        eventsContinuation.yield(.completed(error))
     }
+}
 
-    private func completeHandshake(_ result: Result<Void, Error>) {
-        handshakeLock.lock()
-        let cont = handshakeContinuation
-        handshakeContinuation = nil
-        handshakeLock.unlock()
-        guard let cont else { return }
-        switch result {
-        case .success:
-            cont.resume()
-        case .failure(let error):
-            cont.resume(throwing: error)
-        }
-    }
+/// Handshake ended without `didOpen`. Carries the HTTP response: a failed upgrade reports its status only there.
+struct HandshakeFailure: Error, @unchecked Sendable {
+    let error: Error?
+    let response: URLResponse?
 }

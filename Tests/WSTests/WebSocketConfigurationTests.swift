@@ -7,9 +7,9 @@ import WS
     let c = WebSocket.Configuration.default
     #expect(c.maximumMessageSize == 16_777_216)
     #expect(c.connectionHandshakeTimeout == 30)
-    #expect(c.logSentReceivedBytes == false)
     #expect(c.pingInterval == nil)
     #expect(c.readIdleTimeout == nil)
+    #expect(c.reconnect == .never)
     if case .system = c.serverTrustPolicy {
     } else {
         Issue.record("expected serverTrustPolicy .system")
@@ -21,7 +21,6 @@ import WS
 
 @Test func websocketCheckedConfigurationEnablesPingAndReadIdle() {
     let c = WebSocket.Configuration.checked
-    #expect(c.logSentReceivedBytes == true)
     #expect(c.pingInterval == 10)
     #expect(c.readIdleTimeout == 10)
     #expect(c.waitsForConnectivity == true)

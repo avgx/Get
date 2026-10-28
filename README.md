@@ -163,44 +163,75 @@ For raw lines without SSE field parsing, use `HTTPClient.streamLines` directly.
 
 ## WS
 
-`WebSocket` is an actor wrapping `URLSessionWebSocketTask`. It exposes connection state, a single active `messages()` stream, and send helpers.
+`WebSocket` is an actor wrapping `URLSessionWebSocketTask`. It keeps the link up (reconnecting per `Configuration.reconnect`), publishes exactly one state at a time, and delivers frames from every connection into one `messages` stream.
 
 ```swift
 import WS
 
-var request = URLRequest(url: URL(string: "wss://api.example.com/ws")!)
-request.setValue("Bearer token", forHTTPHeaderField: "Authorization")
-
 var config = WebSocket.Configuration.default
-config.serverTrustPolicy = .system
-config.pingInterval = 10
+config.pingInterval = 20
+config.readIdleTimeout = 90
+config.reconnect = .exponential(initial: 1, multiplier: 1.5, maxDelay: 30)
 
-let socket = WebSocket(request: request, configuration: config)
-let messages = await socket.messages()
+var logger = Logger(label: "ws")
+logger[metadataKey: "ws.channel"] = "events"
 
+let socket = WebSocket(
+    request: URLRequest(url: URL(string: "wss://api.example.com/ws")!),
+    configuration: config,
+    requestAdapter: authInterceptor, // runs before every attempt
+    logger: logger
+)
+
+// One reader for the whole lifetime of the socket: do not restart it on reconnects.
+let reader = Task {
+    for await message in socket.messages {
+        if case .string(let text) = message { print(text) }
+    }
+}
+
+// One state reader for the whole lifetime too; forward state to UI from here.
+let observer = Task {
+    for await state in socket.states {
+        switch state {
+        case .connected:
+            try? await socket.sendString(#"{"subscribe":"all"}"#) // every connection is a new server session
+        case .connecting, .reconnecting:
+            break // no link, recovering
+        case .disconnected(let reason):
+            print("stopped:", reason) // no link, no more attempts until connect()
+        case .idle:
+            break
+        }
+    }
+}
+
+await socket.connect()                                  // returns at once; attempts run in the background
+let outcome = await socket.firstAttemptOutcome()        // optional: .connected, .reconnecting or .disconnected
+await socket.disconnect(reason: .backgroundSuspended)   // returns after the transport is torn down
 await socket.connect()
-
-for await state in await socket.connectionStateUpdates() {
-    switch state {
-    case .connected: break
-    case .disconnected(let reason): print(reason)
-    default: break
-    }
-}
-
-for await message in messages {
-    switch message {
-    case .string(let text): print(text)
-    case .data(let data): print(data.count, "bytes")
-    @unknown default: break
-    }
-}
-
-try await socket.sendString("{\"type\":\"ping\"}")
-await socket.disconnect()
+await socket.shutdown()                                 // ends `messages` and `states`
 ```
 
-`WebSocket.Configuration` controls TLS, message size, handshake timeout, optional ping and read-idle timeouts, and `URLSession` connectivity settings. Presets: `.default` and `.checked` (logging, ping, shorter timeouts).
+States:
+
+| State | Link | Meaning |
+|---|---|---|
+| `.idle` | no | `connect()` not called yet |
+| `.connecting(attempt:)` | no | handshake in progress |
+| `.connected` | yes | frames flow into `messages` |
+| `.reconnecting(attempt:delay:after:)` | no | next attempt after `delay`; `after` is why the previous one ended |
+| `.disconnected(reason:)` | no | stopped: `disconnect(reason:)`, terminal reason (HTTP 401/403/404/4xx), or `.never` policy |
+
+Rules:
+
+- `messages` and `states` each have one consumer, the owner of the socket. Cancelling the iterating task ends the stream for good. Nothing is dropped while nobody reads. `connectionState()` is a snapshot.
+- `shutdownWhenLinkEnds()`, called once before `connect()`, ends both streams on the first `.disconnected`. Use it for a socket that is one session (`reconnect` is `.never`) so the message reader finishes when the link does. The owner keeps reading `states`.
+- Send works only in `.connected`; nothing is queued or replayed after a reconnect.
+- `connect()` / `disconnect(reason:)` from independent `Task`s run in no particular order: serialize them on the caller side.
+- Per-frame traffic logging is the owner's job; `transportMetrics()` gives byte totals.
+
+`WebSocket.Configuration` controls TLS, message size, handshake timeout, optional ping and read-idle timeouts, reconnect policy and `URLSession` connectivity settings. Presets: `.default` (one attempt, no ping) and `.checked` (10 s ping and read-idle, shorter request timeout).
 
 ---
 

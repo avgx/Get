@@ -21,9 +21,9 @@ func lanWebSocketConnectAndFirstMessage() async throws {
     configuration.serverTrustPolicy = .system
     configuration.connectionHandshakeTimeout = 25
     let socket = WebSocket(request: request, configuration: configuration)
-    let stream = await socket.messages()
+    let stream = socket.messages
     await socket.connect()
-    let state = await socket.connectionState()
+    let state = await socket.firstAttemptOutcome()
     guard case .connected = state else {
         if case let .disconnected(reason) = state {
             Issue.record("WebSocket did not connect: \(String(describing: reason))")
@@ -56,18 +56,17 @@ func lanWebSocketLongListenPayloadBytesAndState() async throws {
     configuration.serverTrustPolicy = .system
     configuration.connectionHandshakeTimeout = 25
     let socket = WebSocket(request: request, configuration: configuration)
-    let stream = await socket.messages()
+    let stream = socket.messages
 
     let stateTask = Task {
-        let stateStream = await socket.connectionStateUpdates()
-        for await state in stateStream {
+        for await state in socket.states {
             print("[WS long listen] state: \(String(describing: state))")
         }
     }
     defer { stateTask.cancel() }
 
     await socket.connect()
-    let state = await socket.connectionState()
+    let state = await socket.firstAttemptOutcome()
     guard case .connected = state else {
         if case let .disconnected(reason) = state {
             Issue.record("WebSocket did not connect: \(String(describing: reason))")

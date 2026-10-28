@@ -129,6 +129,7 @@ let package = Package(
             name: "WSTests",
             dependencies: [
                 "WS",
+                "HTTP",
                 .product(name: "SSLPinning", package: "SSLPinning"),
             ],
             path: "Tests/WSTests"
